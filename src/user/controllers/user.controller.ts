@@ -9,30 +9,30 @@ import {
   Query,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
   ApiTags,
-} from '@nestjs/swagger';
+} from '@nestjs/swagger'
 
-import { ROLE } from '../../auth/constants/role.constant';
-import { Roles } from '../../auth/decorators/role.decorator';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
+import { ROLE } from '../../auth/constants/role.constant'
+import { Roles } from '../../auth/decorators/role.decorator'
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
+import { RolesGuard } from '../../auth/guards/roles.guard'
 import {
   BaseApiErrorResponse,
   BaseApiResponse,
   SwaggerBaseApiResponse,
-} from '../../shared/dtos/base-api-response.dto';
-import { PaginationParamsDto } from '../../shared/dtos/pagination-params.dto';
-import { AppLogger } from '../../shared/logger/logger.service';
-import { ReqContext } from '../../shared/request-context/req-context.decorator';
-import { RequestContext } from '../../shared/request-context/request-context.dto';
-import { UserOutput } from '../dtos/user-output.dto';
-import { UpdateUserInput } from '../dtos/user-update-input.dto';
-import { UserService } from '../services/user.service';
+} from '../../shared/dtos/base-api-response.dto'
+import { PaginationParamsDto } from '../../shared/dtos/pagination-params.dto'
+import { AppLogger } from '../../shared/logger/logger.service'
+import { ReqContext } from '../../shared/request-context/req-context.decorator'
+import { RequestContext } from '../../shared/request-context/request-context.dto'
+import { UserOutput } from '../dtos/user-output.dto'
+import { UpdateUserInput } from '../dtos/user-update-input.dto'
+import { UserService } from '../services/user.service'
 
 @ApiTags('users')
 @Controller('users')
@@ -41,7 +41,7 @@ export class UserController {
     private readonly userService: UserService,
     private readonly logger: AppLogger,
   ) {
-    this.logger.setContext(UserController.name);
+    this.logger.setContext(UserController.name)
   }
 
   @UseGuards(JwtAuthGuard)
@@ -59,13 +59,11 @@ export class UserController {
     status: HttpStatus.UNAUTHORIZED,
     type: BaseApiErrorResponse,
   })
-  async getMyProfile(
-    @ReqContext() ctx: RequestContext,
-  ): Promise<BaseApiResponse<UserOutput>> {
-    this.logger.log(ctx, `${this.getMyProfile.name} was called`);
+  async getMyProfile(@ReqContext() ctx: RequestContext): Promise<BaseApiResponse<UserOutput>> {
+    this.logger.log(ctx, `${this.getMyProfile.name} was called`)
 
-    const user = await this.userService.findById(ctx, ctx.user!.id);
-    return { data: user, meta: {} };
+    const user = await this.userService.findById(ctx, ctx.user!.id)
+    return { data: user, meta: {} }
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
@@ -88,15 +86,15 @@ export class UserController {
     @ReqContext() ctx: RequestContext,
     @Query() query: PaginationParamsDto,
   ): Promise<BaseApiResponse<UserOutput[]>> {
-    this.logger.log(ctx, `${this.getUsers.name} was called`);
+    this.logger.log(ctx, `${this.getUsers.name} was called`)
 
-    const { users, count } = await this.userService.getUsers(
+    const { count, users } = await this.userService.getUsers(
       ctx,
       query.limit,
       query.offset,
-    );
+    )
 
-    return { data: users, meta: { count } };
+    return { data: users, meta: { count } }
   }
 
   // TODO: ADD RoleGuard
@@ -116,12 +114,12 @@ export class UserController {
   })
   async getUser(
     @ReqContext() ctx: RequestContext,
-    @Param('id') id: number,
+    @Param('id') id: string,
   ): Promise<BaseApiResponse<UserOutput>> {
-    this.logger.log(ctx, `${this.getUser.name} was called`);
+    this.logger.log(ctx, `${this.getUser.name} was called`)
 
-    const user = await this.userService.getUserById(ctx, id);
-    return { data: user, meta: {} };
+    const user = await this.userService.getUserById(ctx, id)
+    return { data: user, meta: {} }
   }
 
   // TODO: ADD RoleGuard
@@ -141,12 +139,12 @@ export class UserController {
   @UseInterceptors(ClassSerializerInterceptor)
   async updateUser(
     @ReqContext() ctx: RequestContext,
-    @Param('id') userId: number,
+    @Param('id') userId: string,
     @Body() input: UpdateUserInput,
   ): Promise<BaseApiResponse<UserOutput>> {
-    this.logger.log(ctx, `${this.updateUser.name} was called`);
+    this.logger.log(ctx, `${this.updateUser.name} was called`)
 
-    const user = await this.userService.updateUser(ctx, userId, input);
-    return { data: user, meta: {} };
+    const user = await this.userService.updateUser(ctx, userId, input)
+    return { data: user, meta: {} }
   }
 }

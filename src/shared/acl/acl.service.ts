@@ -1,13 +1,13 @@
-import { ROLE } from './../../auth/constants/role.constant';
-import { AclRule, RuleCallback } from './acl-rule.constant';
-import { Action } from './action.constant';
-import { Actor } from './actor.constant';
+import { ROLE } from './../../auth/constants/role.constant'
+import { AclRule, RuleCallback } from './acl-rule.constant'
+import { Action } from './action.constant'
+import { Actor } from './actor.constant'
 
 export class BaseAclService<Resource> {
   /**
    * ACL rules
    */
-  protected aclRules: AclRule<Resource>[] = [];
+  protected aclRules: AclRule<Resource>[] = []
 
   /**
    * Set ACL rule for a role
@@ -18,8 +18,8 @@ export class BaseAclService<Resource> {
     ruleCallback?: RuleCallback<Resource>,
   ): void {
     ruleCallback
-      ? this.aclRules.push({ role, actions, ruleCallback })
-      : this.aclRules.push({ role, actions });
+      ? this.aclRules.push({ actions, role, ruleCallback })
+      : this.aclRules.push({ actions, role })
   }
 
   /**
@@ -28,43 +28,46 @@ export class BaseAclService<Resource> {
   public forActor = (actor: Actor): any => {
     return {
       canDoAction: (action: Action, resource?: Resource) => {
-        let canDoAction = false;
+        let canDoAction = false
 
-        actor.roles.forEach((actorRole) => {
-          //If already has access, return
-          if (canDoAction) return true;
+        for (const actorRole of actor.roles) {
+          // If already has access, skip
+          if (canDoAction) {
+            continue
+          }
 
-          //find all rules for given user role
-          const aclRules = this.aclRules.filter(
-            (rule) => rule.role === actorRole,
-          );
+          // find all rules for given user role
+          const aclRules = this.aclRules.filter(rule => rule.role === actorRole)
 
-          //for each rule, check action permission
-          aclRules.forEach((aclRule) => {
-            //If already has access, return
-            if (canDoAction) return true;
+          // for each rule, check action permission
+          for (const aclRule of aclRules) {
+            // If already has access, skip
+            if (canDoAction) {
+              continue
+            }
 
-            //check action permission
-            const hasActionPermission =
-              aclRule.actions.includes(action) ||
-              aclRule.actions.includes(Action.Manage);
+            // check action permission
+            const hasActionPermission
+              = aclRule.actions.includes(action)
+                || aclRule.actions.includes(Action.Manage)
 
-            //check for custom `ruleCallback` callback
+            // check for custom `ruleCallback` callback
             if (!aclRule.ruleCallback) {
-              canDoAction = hasActionPermission;
-            } else {
+              canDoAction = hasActionPermission
+            }
+            else {
               if (!resource) {
-                throw new Error('Resource is required for ruleCallback');
+                throw new Error('Resource is required for ruleCallback')
               }
 
-              canDoAction =
-                hasActionPermission && aclRule.ruleCallback(resource, actor);
+              canDoAction
+                = hasActionPermission && aclRule.ruleCallback(resource, actor)
             }
-          });
-        });
+          }
+        }
 
-        return canDoAction;
+        return canDoAction
       },
-    };
-  };
+    }
+  }
 }

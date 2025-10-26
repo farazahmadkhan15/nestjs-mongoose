@@ -1,7 +1,8 @@
-import { CustomDecorator, SetMetadata } from '@nestjs/common';
+import { CustomDecorator, SetMetadata } from '@nestjs/common'
 
-import { ROLE } from '../constants/role.constant';
+import { ROLE } from '../constants/role.constant'
 
-export const ROLES_KEY = 'roles';
-export const Roles = (...roles: ROLE[]): CustomDecorator<string> =>
-  SetMetadata(ROLES_KEY, roles);
+export const ROLES_KEY = 'roles'
+export function Roles(...roles: ROLE[]): CustomDecorator<string> {
+  return SetMetadata(ROLES_KEY, roles)
+}

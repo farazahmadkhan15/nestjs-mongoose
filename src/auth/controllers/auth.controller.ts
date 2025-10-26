@@ -7,25 +7,25 @@ import {
   Post,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common';
-import { ApiOperation,ApiResponse, ApiTags } from '@nestjs/swagger';
+} from '@nestjs/common'
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
 import {
   BaseApiErrorResponse,
   BaseApiResponse,
   SwaggerBaseApiResponse,
-} from '../../shared/dtos/base-api-response.dto';
-import { AppLogger } from '../../shared/logger/logger.service';
-import { ReqContext } from '../../shared/request-context/req-context.decorator';
-import { RequestContext } from '../../shared/request-context/request-context.dto';
-import { LoginInput } from '../dtos/auth-login-input.dto';
-import { RefreshTokenInput } from '../dtos/auth-refresh-token-input.dto';
-import { RegisterInput } from '../dtos/auth-register-input.dto';
-import { RegisterOutput } from '../dtos/auth-register-output.dto';
-import { AuthTokenOutput } from '../dtos/auth-token-output.dto';
-import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
-import { LocalAuthGuard } from '../guards/local-auth.guard';
-import { AuthService } from '../services/auth.service';
+} from '../../shared/dtos/base-api-response.dto'
+import { AppLogger } from '../../shared/logger/logger.service'
+import { ReqContext } from '../../shared/request-context/req-context.decorator'
+import { RequestContext } from '../../shared/request-context/request-context.dto'
+import { LoginInput } from '../dtos/auth-login-input.dto'
+import { RefreshTokenInput } from '../dtos/auth-refresh-token-input.dto'
+import { RegisterInput } from '../dtos/auth-register-input.dto'
+import { RegisterOutput } from '../dtos/auth-register-output.dto'
+import { AuthTokenOutput } from '../dtos/auth-token-output.dto'
+import { JwtRefreshGuard } from '../guards/jwt-refresh.guard'
+import { LocalAuthGuard } from '../guards/local-auth.guard'
+import { AuthService } from '../services/auth.service'
 
 @ApiTags('auth')
 @Controller('auth')
@@ -34,8 +34,9 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly logger: AppLogger,
   ) {
-    this.logger.setContext(AuthController.name);
+    this.logger.setContext(AuthController.name)
   }
+
   @Post('login')
   @ApiOperation({
     summary: 'User login API',
@@ -53,13 +54,12 @@ export class AuthController {
   @UseInterceptors(ClassSerializerInterceptor)
   login(
     @ReqContext() ctx: RequestContext,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    @Body() credential: LoginInput,
+    @Body() _credential: LoginInput,
   ): BaseApiResponse<AuthTokenOutput> {
-    this.logger.log(ctx, `${this.login.name} was called`);
+    this.logger.log(ctx, `${this.login.name} was called`)
 
-    const authToken = this.authService.login(ctx);
-    return { data: authToken, meta: {} };
+    const authToken = this.authService.login(ctx)
+    return { data: authToken, meta: {} }
   }
 
   @Post('register')
@@ -74,8 +74,8 @@ export class AuthController {
     @ReqContext() ctx: RequestContext,
     @Body() input: RegisterInput,
   ): Promise<BaseApiResponse<RegisterOutput>> {
-    const registeredUser = await this.authService.register(ctx, input);
-    return { data: registeredUser, meta: {} };
+    const registeredUser = await this.authService.register(ctx, input)
+    return { data: registeredUser, meta: {} }
   }
 
   @Post('refresh-token')
@@ -95,12 +95,11 @@ export class AuthController {
   @UseInterceptors(ClassSerializerInterceptor)
   async refreshToken(
     @ReqContext() ctx: RequestContext,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    @Body() credential: RefreshTokenInput,
+    @Body() _credential: RefreshTokenInput,
   ): Promise<BaseApiResponse<AuthTokenOutput>> {
-    this.logger.log(ctx, `${this.refreshToken.name} was called`);
+    this.logger.log(ctx, `${this.refreshToken.name} was called`)
 
-    const authToken = await this.authService.refreshToken(ctx);
-    return { data: authToken, meta: {} };
+    const authToken = await this.authService.refreshToken(ctx)
+    return { data: authToken, meta: {} }
   }
 }

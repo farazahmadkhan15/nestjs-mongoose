@@ -1,7 +1,7 @@
-import { AppLogger } from './logger.service';
+import { AppLogger } from './logger.service'
 
-describe('AppLogger', () => {
+describe('appLogger', () => {
   it('should be defined', () => {
-    expect(new AppLogger()).toBeDefined();
-  });
-});
+    expect(new AppLogger()).toBeDefined()
+  })
+})

@@ -1,46 +1,30 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  Unique,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 
-import { Article } from '../../article/entities/article.entity';
-
-@Entity('users')
+@Schema({ collection: 'users', timestamps: true })
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  _id?: string
 
-  @Column({ length: 100 })
-  name: string;
+  @Prop({ maxlength: 100, required: true })
+  name: string
 
-  @Column()
-  password: string;
+  @Prop({ required: true })
+  password: string
 
-  @Unique('username', ['username'])
-  @Column({ length: 200 })
-  username: string;
+  @Prop({ maxlength: 200, required: true, unique: true })
+  username: string
 
-  @Column('simple-array')
-  roles: string[];
+  @Prop({ required: true, type: [String] })
+  roles: string[]
 
-  @Column()
-  isAccountDisabled: boolean;
+  @Prop({ default: false, required: true })
+  isAccountDisabled: boolean
 
-  @Unique('email', ['email'])
-  @Column({ length: 200 })
-  email: string;
+  @Prop({ maxlength: 200, required: true, unique: true })
+  email: string
 
-  @CreateDateColumn({ name: 'createdAt', nullable: true })
-  createdAt: Date;
+  createdAt?: Date
 
-  @UpdateDateColumn({ name: 'updatedAt', nullable: true })
-  updatedAt: Date;
-
-  @OneToMany(() => Article, (article) => article.author)
-  articles: Article[];
+  updatedAt?: Date
 }
+
+export const UserSchema = SchemaFactory.createForClass(User)

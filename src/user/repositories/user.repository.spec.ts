@@ -1,22 +1,23 @@
-import { NotFoundException } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { DataSource } from 'typeorm';
+import { NotFoundException } from '@nestjs/common'
+import { Test, TestingModule } from '@nestjs/testing'
+import { DataSource } from 'typeorm'
 
-import { ROLE } from '../../auth/constants/role.constant';
-import { User } from '../entities/user.entity';
-import { UserRepository } from './user.repository';
+import { ROLE } from '../../auth/constants/role.constant'
+import { User } from '../entities/user.entity'
 
-describe('UserRepository', () => {
-  let repository: UserRepository;
+import { UserRepository } from './user.repository'
+
+describe('userRepository', () => {
+  let repository: UserRepository
 
   let dataSource: {
-    createEntityManager: jest.Mock;
-  };
+    createEntityManager: jest.Mock
+  }
 
   beforeEach(async () => {
     dataSource = {
       createEntityManager: jest.fn(),
-    };
+    }
 
     const moduleRef: TestingModule = await Test.createTestingModule({
       providers: [
@@ -26,64 +27,65 @@ describe('UserRepository', () => {
           useValue: dataSource,
         },
       ],
-    }).compile();
+    }).compile()
 
-    repository = moduleRef.get<UserRepository>(UserRepository);
-  });
+    repository = moduleRef.get<UserRepository>(UserRepository)
+  })
 
   it('should be defined', () => {
-    expect(repository).toBeDefined();
-  });
+    expect(repository).toBeDefined()
+  })
 
-  describe('Get user by id', () => {
-    const currentDate = new Date();
+  describe('get user by id', () => {
+    const currentDate = new Date()
     it('should call findOne with correct id', () => {
-      const id = 1;
+      const id = 1
 
       const expectedOutput: User = {
+        articles: [],
+        createdAt: currentDate,
+        email: 'default-user@random.com',
         id,
+        isAccountDisabled: false,
         name: 'Default User',
-        username: 'default-user',
         password: 'random-password',
         roles: [ROLE.USER],
-        isAccountDisabled: false,
-        email: 'default-user@random.com',
-        createdAt: currentDate,
         updatedAt: currentDate,
-        articles: [],
-      };
+        username: 'default-user',
+      }
 
-      jest.spyOn(repository, 'findOne').mockResolvedValue(expectedOutput);
-      repository.getById(id);
-      expect(repository.findOne).toHaveBeenCalledWith({ where: { id } });
-    });
+      jest.spyOn(repository, 'findOne').mockResolvedValue(expectedOutput)
+      repository.getById(id)
+      expect(repository.findOne).toHaveBeenCalledWith({ where: { id } })
+    })
 
     it('should return user if found', async () => {
       const expectedOutput: User = {
+        articles: [],
+        createdAt: currentDate,
+        email: 'default-user@random.com',
         id: 1,
+        isAccountDisabled: false,
         name: 'Default User',
-        username: 'default-user',
         password: 'random-password',
         roles: [ROLE.USER],
-        isAccountDisabled: false,
-        email: 'default-user@random.com',
-        createdAt: currentDate,
         updatedAt: currentDate,
-        articles: [],
-      };
+        username: 'default-user',
+      }
 
-      jest.spyOn(repository, 'findOne').mockResolvedValue(expectedOutput);
+      jest.spyOn(repository, 'findOne').mockResolvedValue(expectedOutput)
 
-      expect(await repository.getById(1)).toEqual(expectedOutput);
-    });
+      expect(await repository.getById(1)).toEqual(expectedOutput)
+    })
 
     it('should throw NotFoundError when user not found', async () => {
-      jest.spyOn(repository, 'findOne').mockResolvedValue(null);
+      jest.spyOn(repository, 'findOne').mockResolvedValue(null)
       try {
-        await repository.getById(1);
-      } catch (error: any) {
-        expect(error.constructor).toBe(NotFoundException);
+        await repository.getById(1)
       }
-    });
-  });
-});
+      catch (error: any) {
+        expect(error.constructor).toBe(NotFoundException)
+      }
+    })
+  })
+})

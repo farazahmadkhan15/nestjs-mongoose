@@ -1,23 +1,24 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing'
 
-import { ROLE } from '../../auth/constants/role.constant';
-import { PaginationParamsDto } from '../../shared/dtos/pagination-params.dto';
-import { AppLogger } from '../../shared/logger/logger.service';
-import { RequestContext } from '../../shared/request-context/request-context.dto';
-import { UserOutput } from '../dtos/user-output.dto';
-import { UpdateUserInput } from '../dtos/user-update-input.dto';
-import { UserService } from '../services/user.service';
-import { UserController } from './user.controller';
+import { ROLE } from '../../auth/constants/role.constant'
+import { PaginationParamsDto } from '../../shared/dtos/pagination-params.dto'
+import { AppLogger } from '../../shared/logger/logger.service'
+import { RequestContext } from '../../shared/request-context/request-context.dto'
+import { UserOutput } from '../dtos/user-output.dto'
+import { UpdateUserInput } from '../dtos/user-update-input.dto'
+import { UserService } from '../services/user.service'
 
-describe('UserController', () => {
-  let controller: UserController;
+import { UserController } from './user.controller'
+
+describe('userController', () => {
+  let controller: UserController
   const mockedUserService = {
-    getUsers: jest.fn(),
     getUserById: jest.fn(),
+    getUsers: jest.fn(),
     updateUser: jest.fn(),
-  };
+  }
 
-  const mockedLogger = { setContext: jest.fn(), log: jest.fn() };
+  const mockedLogger = { log: jest.fn(), setContext: jest.fn() }
 
   beforeEach(async () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
@@ -26,64 +27,64 @@ describe('UserController', () => {
         { provide: UserService, useValue: mockedUserService },
         { provide: AppLogger, useValue: mockedLogger },
       ],
-    }).compile();
+    }).compile()
 
-    controller = moduleRef.get<UserController>(UserController);
-  });
+    controller = moduleRef.get<UserController>(UserController)
+  })
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
+    expect(controller).toBeDefined()
+  })
 
-  const ctx = new RequestContext();
+  const ctx = new RequestContext()
 
   describe('get Users as a list', () => {
-    it('Calls getUsers function', () => {
+    it('calls getUsers function', () => {
       const query: PaginationParamsDto = {
-        offset: 0,
         limit: 0,
-      };
-      mockedUserService.getUsers.mockResolvedValue({ users: [], count: 0 });
-      controller.getUsers(ctx, query);
-      expect(mockedUserService.getUsers).toHaveBeenCalled();
-    });
-  });
+        offset: 0,
+      }
+      mockedUserService.getUsers.mockResolvedValue({ count: 0, users: [] })
+      controller.getUsers(ctx, query)
+      expect(mockedUserService.getUsers).toHaveBeenCalled()
+    })
+  })
 
-  const currentDate = new Date().toString();
+  const currentDate = new Date().toString()
 
   const expectedOutput: UserOutput = {
+    createdAt: currentDate,
+    email: 'e2etester@random.com',
     id: 1,
-    username: 'default-user',
+    isAccountDisabled: false,
     name: 'default-name',
     roles: [ROLE.USER],
-    isAccountDisabled: false,
-    email: 'e2etester@random.com',
-    createdAt: currentDate,
     updatedAt: currentDate,
-  };
+    username: 'default-user',
+  }
 
-  describe('Get user by id', () => {
+  describe('get user by id', () => {
     it('should call service method getUserById with id', async () => {
-      const id = 1;
-      mockedUserService.getUserById.mockResolvedValue(expectedOutput);
+      const id = 1
+      mockedUserService.getUserById.mockResolvedValue(expectedOutput)
 
       expect(await controller.getUser(ctx, id)).toEqual({
         data: expectedOutput,
         meta: {},
-      });
-      expect(mockedUserService.getUserById).toHaveBeenCalledWith(ctx, id);
-    });
-  });
+      })
+      expect(mockedUserService.getUserById).toHaveBeenCalledWith(ctx, id)
+    })
+  })
 
-  describe('Update user by id', () => {
-    it('Update user by id and returns user', async () => {
-      const input = new UpdateUserInput();
-      mockedUserService.updateUser.mockResolvedValue(expectedOutput);
+  describe('update user by id', () => {
+    it('update user by id and returns user', async () => {
+      const input = new UpdateUserInput()
+      mockedUserService.updateUser.mockResolvedValue(expectedOutput)
 
       expect(await controller.updateUser(ctx, 1, input)).toEqual({
         data: expectedOutput,
         meta: {},
-      });
-    });
-  });
-});
+      })
+    })
+  })
+})

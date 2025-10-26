@@ -1,14 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { compare, hash } from 'bcrypt';
-import { plainToClass } from 'class-transformer';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common'
+import { compare, hash } from 'bcrypt'
+import { plainToClass } from 'class-transformer'
 
-import { AppLogger } from '../../shared/logger/logger.service';
-import { RequestContext } from '../../shared/request-context/request-context.dto';
-import { CreateUserInput } from '../dtos/user-create-input.dto';
-import { UserOutput } from '../dtos/user-output.dto';
-import { UpdateUserInput } from '../dtos/user-update-input.dto';
-import { User } from '../entities/user.entity';
-import { UserRepository } from '../repositories/user.repository';
+import { AppLogger } from '../../shared/logger/logger.service'
+import { RequestContext } from '../../shared/request-context/request-context.dto'
+import { CreateUserInput } from '../dtos/user-create-input.dto'
+import { UserOutput } from '../dtos/user-output.dto'
+import { UpdateUserInput } from '../dtos/user-update-input.dto'
+import { User } from '../entities/user.entity'
+import { UserRepository } from '../repositories/user.repository'
 
 @Injectable()
 export class UserService {
@@ -16,24 +16,26 @@ export class UserService {
     private repository: UserRepository,
     private readonly logger: AppLogger,
   ) {
-    this.logger.setContext(UserService.name);
+    this.logger.setContext(UserService.name)
   }
+
   async createUser(
     ctx: RequestContext,
     input: CreateUserInput,
   ): Promise<UserOutput> {
-    this.logger.log(ctx, `${this.createUser.name} was called`);
+    this.logger.log(ctx, `${this.createUser.name} was called`)
 
-    const user = plainToClass(User, input);
+    const hashedPassword = await hash(input.password, 10)
 
-    user.password = await hash(input.password, 10);
-
-    this.logger.log(ctx, `calling ${UserRepository.name}.saveUser`);
-    await this.repository.save(user);
+    this.logger.log(ctx, `calling ${UserRepository.name}.create`)
+    const user = await this.repository.create({
+      ...input,
+      password: hashedPassword,
+    })
 
     return plainToClass(UserOutput, user, {
       excludeExtraneousValues: true,
-    });
+    })
   }
 
   async validateUsernamePassword(
@@ -41,103 +43,107 @@ export class UserService {
     username: string,
     pass: string,
   ): Promise<UserOutput> {
-    this.logger.log(ctx, `${this.validateUsernamePassword.name} was called`);
+    this.logger.log(ctx, `${this.validateUsernamePassword.name} was called`)
 
-    this.logger.log(ctx, `calling ${UserRepository.name}.findOne`);
-    const user = await this.repository.findOne({ where: { username } });
-    if (!user) throw new UnauthorizedException();
+    this.logger.log(ctx, `calling ${UserRepository.name}.findOne`)
+    const user = await this.repository.findOne({ username })
+    if (!user)
+      throw new UnauthorizedException()
 
-    const match = await compare(pass, user.password);
-    if (!match) throw new UnauthorizedException();
+    const isMatch = await compare(pass, user.password)
+    if (!isMatch)
+      throw new UnauthorizedException()
 
     return plainToClass(UserOutput, user, {
       excludeExtraneousValues: true,
-    });
+    })
   }
 
   async getUsers(
     ctx: RequestContext,
     limit: number,
     offset: number,
-  ): Promise<{ users: UserOutput[]; count: number }> {
-    this.logger.log(ctx, `${this.getUsers.name} was called`);
+  ): Promise<{ count: number, users: UserOutput[] }> {
+    this.logger.log(ctx, `${this.getUsers.name} was called`)
 
-    this.logger.log(ctx, `calling ${UserRepository.name}.findAndCount`);
-    const [users, count] = await this.repository.findAndCount({
-      where: {},
-      take: limit,
-      skip: offset,
-    });
+    this.logger.log(ctx, `calling ${UserRepository.name}.find and count`)
+    const [users, count] = await Promise.all([
+      this.repository.find({}, offset, limit),
+      this.repository.count({}),
+    ])
 
     const usersOutput = plainToClass(UserOutput, users, {
       excludeExtraneousValues: true,
-    });
+    })
 
-    return { users: usersOutput, count };
+    return { count, users: usersOutput }
   }
 
-  async findById(ctx: RequestContext, id: number): Promise<UserOutput> {
-    this.logger.log(ctx, `${this.findById.name} was called`);
+  async findById(ctx: RequestContext, id: string): Promise<UserOutput> {
+    this.logger.log(ctx, `${this.findById.name} was called`)
 
-    this.logger.log(ctx, `calling ${UserRepository.name}.findOne`);
-    const user = await this.repository.findOne({ where: { id } });
+    this.logger.log(ctx, `calling ${UserRepository.name}.findOne`)
+    const user = await this.repository.findOne({ _id: id })
 
     return plainToClass(UserOutput, user, {
       excludeExtraneousValues: true,
-    });
+    })
   }
 
-  async getUserById(ctx: RequestContext, id: number): Promise<UserOutput> {
-    this.logger.log(ctx, `${this.getUserById.name} was called`);
+  async getUserById(ctx: RequestContext, id: string): Promise<UserOutput> {
+    this.logger.log(ctx, `${this.getUserById.name} was called`)
 
-    this.logger.log(ctx, `calling ${UserRepository.name}.getById`);
-    const user = await this.repository.getById(id);
+    this.logger.log(ctx, `calling ${UserRepository.name}.getById`)
+    const user = await this.repository.getById(id)
 
     return plainToClass(UserOutput, user, {
       excludeExtraneousValues: true,
-    });
+    })
   }
 
   async findByUsername(
     ctx: RequestContext,
     username: string,
   ): Promise<UserOutput> {
-    this.logger.log(ctx, `${this.findByUsername.name} was called`);
+    this.logger.log(ctx, `${this.findByUsername.name} was called`)
 
-    this.logger.log(ctx, `calling ${UserRepository.name}.findOne`);
-    const user = await this.repository.findOne({ where: { username } });
+    this.logger.log(ctx, `calling ${UserRepository.name}.findOne`)
+    const user = await this.repository.findOne({ username })
 
     return plainToClass(UserOutput, user, {
       excludeExtraneousValues: true,
-    });
+    })
   }
 
   async updateUser(
     ctx: RequestContext,
-    userId: number,
+    userId: string,
     input: UpdateUserInput,
   ): Promise<UserOutput> {
-    this.logger.log(ctx, `${this.updateUser.name} was called`);
+    this.logger.log(ctx, `${this.updateUser.name} was called`)
 
-    this.logger.log(ctx, `calling ${UserRepository.name}.getById`);
-    const user = await this.repository.getById(userId);
+    this.logger.log(ctx, `calling ${UserRepository.name}.getById`)
+    const user = await this.repository.getById(userId)
 
     // Hash the password if it exists in the input payload.
     if (input.password) {
-      input.password = await hash(input.password, 10);
+      input.password = await hash(input.password, 10)
     }
 
     // merges the input (2nd line) to the found user (1st line)
-    const updatedUser: User = {
+    const updateUser: User = {
       ...user,
       ...input,
-    };
+    }
 
-    this.logger.log(ctx, `calling ${UserRepository.name}.save`);
-    await this.repository.save(updatedUser);
+    this.logger.log(ctx, `calling ${UserRepository.name}.update`)
+    const updatedUser = await this.repository.update(updateUser)
+    if (!updatedUser) {
+      throw new NotFoundException()
+    }
 
     return plainToClass(UserOutput, updatedUser, {
       excludeExtraneousValues: true,
-    });
+    })
   }
 }
